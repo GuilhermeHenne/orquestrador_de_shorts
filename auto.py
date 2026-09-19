@@ -1,3 +1,4 @@
+# Maestro: escolhe a URL, processa e publica o Short
 import subprocess, sys
 from datetime import datetime
 from pathlib import Path
