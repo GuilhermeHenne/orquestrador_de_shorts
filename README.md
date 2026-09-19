@@ -1,102 +1,62 @@
+# orquestrador_de_shorts
 
- GUIA DOS ARQUIVOS - /home/userapp/appvideos/scripts
+Automação que transforma vídeos com licença Creative Commons em Shorts e publica no YouTube: corta o melhor trecho, empilha com um gameplay, legenda com Whisper e envia pela API oficial.
 
+> Projeto de uso pessoal. Use apenas material cuja licença permita o reuso e sempre dê os créditos.
 
-CAMINHO DE UM VIDEO
--------------------
-auto.py escolhe a URL
-   -> extrator.py acha o melhor trecho
-   -> orquestrador.sh baixa, legenda (legendar.py) e monta o video
-   -> uploader.py publica no YouTube
-   -> auto.py registra o resultado em feito.txt
+## Como funciona
 
+`auto.py` escolhe a URL → `extrator.py` acha o melhor trecho → `orquestrador.sh` baixa, legenda (`legendar.py`) e monta o vídeo → `uploader.py` publica no YouTube → `auto.py` registra o resultado em `feito.txt`.
 
----------------------------------------------------------------------
-1) PIPELINE (os scripts que trabalham)
----------------------------------------------------------------------
+## Arquivos
 
-auto.py
-  O maestro. Pega a proxima URL de fontes.txt, confere se a licenca e
-  Creative Commons, chama o orquestrador.sh, monta titulo e descricao
-  (com credito e hashtags), chama o uploader.py e registra o resultado.
-  E ele que o cron executa.
-  Uso: python auto.py        (posta 1 video)
-       python auto.py 3      (posta ate 3 videos)
+### Pipeline
 
-extrator.py
-  Descobre o melhor trecho de 60 segundos: o pico do grafico de
-  retencao ou, quando o video nao tem grafico, o ponto em 30% do video.
-  Devolve o inicio e o fim em segundos.
+| Arquivo | O que faz |
+|---|---|
+| `auto.py` | O maestro. Pega a próxima URL de `fontes.txt`, confere se a licença é Creative Commons, chama o `orquestrador.sh`, monta título e descrição (com crédito e hashtags), chama o `uploader.py` e registra o resultado. É ele que o cron executa. |
+| `extrator.py` | Descobre o melhor trecho de 60 segundos: o pico do gráfico de retenção ou, sem gráfico, o ponto em 30% do vídeo. |
+| `orquestrador.sh` | Sorteia um gameplay (arquivo, ponto de início e quem fica em cima), baixa o trecho, chama o `legendar.py` e renderiza o vídeo final em tela dividida. |
+| `legendar.py` | Transcreve a fala com o Whisper e gera a legenda em blocos de até 3 palavras. |
+| `uploader.py` | Envia o vídeo ao YouTube pela API v3, com título, descrição e hashtags. |
 
-orquestrador.sh
-  Sorteia um gameplay (arquivo, ponto de inicio e quem fica em cima),
-  baixa o trecho, chama o legendar.py e renderiza o video final em tela
-  dividida com a legenda. Gera o video_final.mp4.
+### Alimentação da fila
 
-legendar.py
-  Transcreve a fala com o Whisper e gera o arquivo de legenda
-  (legenda.srt), em blocos de ate 3 palavras.
+| Arquivo | O que faz |
+|---|---|
+| `assuntos.txt` | Temas de busca, um por linha. |
+| `abastecer.sh` | Busca cada assunto no YouTube (filtro CC) e acrescenta a `fontes.txt` só as URLs novas. |
+| `baixar_gameplay.sh` | Baixa gameplays CC para `gameplays/` e anota o crédito de cada um. |
+| `auth.py` | Autoriza o app no Google e gera o `token.json`. Roda uma vez. |
 
-uploader.py
-  Envia o video_final.mp4 ao YouTube pela API, com titulo, descricao e
-  hashtags.
+## Instalação
 
+Requisitos: Python 3.12, `ffmpeg` e uma conta no Google Cloud com a **YouTube Data API v3** ativada.
 
----------------------------------------------------------------------
-2) ALIMENTACAO (o que entra na fila)
----------------------------------------------------------------------
+```bash
+python -m venv env
+source env/bin/activate
+pip install yt-dlp faster-whisper google-api-python-client google-auth-oauthlib
+```
 
-assuntos.txt
-  Lista de temas de busca, um por linha.
+1. No Google Cloud, crie um cliente OAuth do tipo **App para computador** e salve o JSON como `client_secret.json` na pasta do projeto.
+2. Rode `python auth.py` e autorize no navegador. Isso gera o `token.json`.
+3. Crie a pasta `gameplays/` com vídeos de fundo, ou use `./baixar_gameplay.sh "termo de busca" 3`.
 
-abastecer.sh
-  Busca no YouTube cada assunto (com o filtro de licenca CC) e
-  acrescenta ao fontes.txt somente as URLs novas.
+## Uso
 
-fontes.txt
-  A fila de videos candidatos, um link por linha.
+```bash
+./abastecer.sh          # enche a fila fontes.txt a partir de assuntos.txt
+python auto.py          # posta 1 vídeo
+python auto.py 3        # posta até 3 vídeos
+```
 
-feito.txt
-  Links ja postados ou descartados (sem CC, muito curtos, falhas
-  repetidas). Evita repetir videos.
+Para agendar, chame `python auto.py` no cron.
 
-baixar_gameplay.sh
-  Baixa gameplays com licenca CC para a pasta gameplays/ e anota o
-  credito de cada um.
-  Uso: ./baixar_gameplay.sh "termo de busca" quantidade
+Enquanto o app do Google Cloud estiver em modo "Testando", o `token.json` expira em 7 dias e é preciso rodar o `auth.py` de novo.
 
-gameplays/
-  Os videos de fundo, mais o creditos.txt com o autor de cada um.
+## Fica só na sua máquina (não vai para o Git)
 
+O `.gitignore` bloqueia: `client_secret.json`, `token.json`, `env/`, `gameplays/`, `fontes.txt`, `feito.txt`, `falhas.txt`, `gameplay_usado.txt`, logs e qualquer `.mp4`, `.srt` ou `.png`. **Nunca versione credenciais.**
 
----------------------------------------------------------------------
-3) AMBIENTE E RESTOS
----------------------------------------------------------------------
-
-env/
-  Ambiente virtual do Python com as bibliotecas (yt-dlp, Whisper,
-  Google API). Nao mexa.
-
-__pycache__/
-  Cache que o Python cria sozinho. Pode ignorar.
-
-auto.log
-  Onde o cron grava o que o auto.py imprime. Serve para ver o que
-  aconteceu quando voce nao estava olhando.
-
-gameplay_usado.txt
-  Arquivo temporario: guarda qual gameplay entrou no ultimo video, para
-  o credito na descricao e para nao repetir o mesmo em seguida.
-
-auto.py.bak
-  Backup da versao antiga do auto.py. Pode apagar (rm auto.py.bak).
-
-
----------------------------------------------------------------------
-ARQUIVOS QUE APARECEM SO DURANTE A EXECUCAO
----------------------------------------------------------------------
-
-corte_bruto.mp4   trecho baixado, antes da montagem
-legenda.srt       legenda gerada pelo Whisper
-video_final.mp4   video pronto para o upload
-falhas.txt        URLs que falharam (aparece quando algo da errado)
+Durante a execução aparecem arquivos temporários (`corte_bruto.mp4`, `legenda.srt`, `video_final.mp4`) que são apagados no fim.
