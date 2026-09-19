@@ -1,0 +1,26 @@
+# segredos (NUNCA versionar)
+client_secret.json
+token.json
+cookies.json
+*.pem
+*.key
+
+# ambiente e cache
+env/
+__pycache__/
+*.pyc
+
+# midia e temporarios
+*.mp4
+*.srt
+*.png
+gameplays/
+gameplay_usado.txt
+
+# estado local da fila e logs
+fontes.txt
+feito.txt
+falhas.txt
+*.log
+*.bak
+fontes.tmp
