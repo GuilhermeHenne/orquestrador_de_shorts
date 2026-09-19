@@ -3,7 +3,6 @@ Monark
 podcast br
 podcast humor
 podcast brasileiro
-monarktalks
 podcast cancelado
 podcast polemica
 podcast reflexao
