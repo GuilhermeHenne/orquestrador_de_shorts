@@ -1,4 +1,5 @@
 #!/bin/bash
+# Baixa gameplays CC para a pasta gameplays
 cd "$(dirname "$0")"
 source env/bin/activate
 TERMO="$1"; N="${2:-3}"
