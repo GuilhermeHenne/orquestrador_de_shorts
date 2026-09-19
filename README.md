@@ -54,9 +54,3 @@ python auto.py 3        # posta até 3 vídeos
 Para agendar, chame `python auto.py` no cron.
 
 Enquanto o app do Google Cloud estiver em modo "Testando", o `token.json` expira em 7 dias e é preciso rodar o `auth.py` de novo.
-
-## Fica só na sua máquina (não vai para o Git)
-
-O `.gitignore` bloqueia: `client_secret.json`, `token.json`, `env/`, `gameplays/`, `fontes.txt`, `feito.txt`, `falhas.txt`, `gameplay_usado.txt`, logs e qualquer `.mp4`, `.srt` ou `.png`. **Nunca versione credenciais.**
-
-Durante a execução aparecem arquivos temporários (`corte_bruto.mp4`, `legenda.srt`, `video_final.mp4`) que são apagados no fim.
