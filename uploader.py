@@ -1,3 +1,4 @@
+# Envia o video ao YouTube pela API v3
 import sys
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
