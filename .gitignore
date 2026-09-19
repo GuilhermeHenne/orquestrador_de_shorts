@@ -1,3 +1,4 @@
+# Ignora segredos, videos, logs e estado local
 # segredos (NUNCA versionar)
 client_secret.json
 token.json
