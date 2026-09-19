@@ -70,25 +70,7 @@ gameplays/
 
 
 ---------------------------------------------------------------------
-3) ACESSO A CONTA (SENSIVEL - nao compartilhe nem coloque no Git)
----------------------------------------------------------------------
-
-client_secret.json
-  Identifica o SEU app no Google Cloud. Sem ele o auth.py nao funciona.
-
-auth.py
-  Roda uma vez (com o tunel SSH) para autorizar o app e gravar o
-  token.json.
-
-token.json
-  A permissao salva para postar no seu canal. Como o app esta em modo
-  "Testando", expira em 7 dias e exige refazer o auth.py.
-
-Os dois arquivos .json ja estao com permissao 600 (so o userapp le).
-
-
----------------------------------------------------------------------
-4) AMBIENTE E RESTOS
+3) AMBIENTE E RESTOS
 ---------------------------------------------------------------------
 
 env/
