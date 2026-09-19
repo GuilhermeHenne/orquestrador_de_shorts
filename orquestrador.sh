@@ -1,4 +1,5 @@
 #!/bin/bash
+# Baixa o corte e renderiza o video em tela dividida
 cd "$(dirname "$0")"
 rm -f corte_bruto.mp4 video_final.mp4 legenda.srt
 URL="$1"
