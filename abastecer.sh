@@ -1,4 +1,5 @@
 #!/bin/bash
+# Busca videos CC no YouTube e abastece a fila fontes.txt
 cd "$(dirname "$0")"
 source env/bin/activate
 touch fontes.txt feito.txt
