@@ -1,3 +1,4 @@
+# Gera legendas com Whisper (faster-whisper)
 import sys
 from faster_whisper import WhisperModel
 
