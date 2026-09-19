@@ -1,3 +1,4 @@
+# Acha o melhor trecho de 60s (pico de retencao)
 import yt_dlp
 import sys
 
