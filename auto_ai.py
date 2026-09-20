@@ -55,6 +55,10 @@ def main():
     # 2. Descarregar Mídias e Gerar Áudio TTS
     log("A recolher mídias (Pexels) e a gerar áudio (TTS)...")
     r = subprocess.run([str(PY), "midia.py"], cwd=BASE)
+    if r.returncode == 3:
+        log(f"Sem mídia relevante suficiente para '{tema_atual}'. Tema pulado.")
+        marcar_como_feito(tema_atual)
+        sys.exit(0)
     if r.returncode != 0:
         log("Falha ao processar mídias. Abortando.")
         sys.exit(1)

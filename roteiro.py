@@ -1,13 +1,16 @@
 # Gera roteiro curto (JSON) a partir da Wikipedia pt e de um modelo local (Ollama)
-import json, re, sys, urllib.parse, urllib.request
+import json, random, re, sys, urllib.parse, urllib.request
+from validacao import fundamentado
 from pathlib import Path
 
 BASE = Path(__file__).parent
 MODELO = "qwen2.5:3b"
 OLLAMA = "http://localhost:11434/api/generate"
 UA = {"User-Agent": "orquestra-uso-pessoal/0.1", "Content-Type": "application/json"}
+TITULOS = ["{t}: você sabia disso?", "Curiosidades sobre {t}", "{t}: fatos que impressionam"]
 PALAVRAS_EN = {"the", "and", "you", "your", "is", "are", "of", "that", "they", "with", "this", "what", "will", "believe", "next"}
 EXTRAS_BUSCA = ["", "water", "group", "close up", "nature"]
+CTAS = ["Você já conhecia essa curiosidade? Conta nos comentários.", "Qual animal você quer ver no próximo vídeo? Comenta aí.", "E você, já viu um desses de perto? Conta nos comentários."]
 
 
 def get_json(url, dados=None, timeout=600):
@@ -42,6 +45,8 @@ Regras:
 - Cena 1: um gancho curioso e verdadeiro, em forma de pergunta ou de fato surpreendente.
 - Cenas 2 a 4: um fato do texto por cena.
 - Cena 5: uma frase de fecho que encerra o assunto e deixa uma pergunta para o público comentar.
+- Não comece duas frases seguidas com a mesma palavra; varie o começo das frases.
+- Respeite o gênero gramatical do texto base (por exemplo "a capivara") e não compare com outros animais.
 - Total entre 70 e 100 palavras. Sem emojis e sem MAIÚSCULAS.
 
 Responda somente com JSON válido, neste formato:
@@ -94,7 +99,11 @@ def main():
         except Exception as e:
             print("Erro:", e)
             continue
-        if valido(r):
+        if valido(r) and fundamentado(r["cenas"], texto, titulo):
+            ultima = r["cenas"][-1]
+            if "?" not in ultima["texto"]:
+                ultima["texto"] = ultima["texto"].rstrip() + " " + random.choice(CTAS)
+            r["titulo"] = random.choice(TITULOS).format(t=titulo)
             montar_buscas(nome_en, r["cenas"])
             r["tema"] = titulo
             r["fonte"] = f"https://pt.wikipedia.org/wiki/{urllib.parse.quote(titulo.replace(' ', '_'))}"

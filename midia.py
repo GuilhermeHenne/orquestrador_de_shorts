@@ -1,11 +1,14 @@
 # Coleta de midias (Pexels) e geracao de voz (Edge TTS)
-import json, random, subprocess, sys, urllib.parse
+import json, random, re, subprocess, sys, urllib.parse
 from pathlib import Path
 
 BASE = Path(__file__).parent
 TRABALHO = BASE / "trabalho"
 ENV_FILE = BASE / "segredos" / ".env"
 VOZ = "pt-BR-AntonioNeural"
+FILLER = "nature landscape"
+USADOS = set()
+PALAVRAS_FRACAS = {"water", "group", "close", "nature", "wildlife", "landscape"}
 
 
 def carregar_env():
@@ -16,8 +19,8 @@ def carregar_env():
     return None
 
 
-def baixar_video_pexels(query, api_key, indice, creditos):
-    print(f"[{indice}] Pexels: '{query}'")
+def baixar_video_pexels(query, api_key, indice, creditos, exato):
+    print(f"[{indice}] Pexels: '{query}' ({'especifico' if exato else 'paisagem'})")
     url = f"https://api.pexels.com/videos/search?query={urllib.parse.quote(query)}&orientation=portrait&per_page=15"
     r = subprocess.run(["curl", "-s", "-H", f"Authorization: {api_key}", url], capture_output=True, text=True)
     try:
@@ -25,10 +28,17 @@ def baixar_video_pexels(query, api_key, indice, creditos):
     except Exception:
         print(f"[{indice}] Resposta invalida: {r.stdout[:100]}")
         return False
-    if "error" in dados or not dados.get("videos"):
-        print(f"[{indice}] Nada encontrado.")
+    videos = dados.get("videos") or []
+    if exato:
+        chaves = [w for w in re.findall(r"[a-z]+", query.lower()) if len(w) > 3 and w not in PALAVRAS_FRACAS]
+        videos = [v for v in videos if all(w in v.get("url", "").lower() for w in chaves)]
+    if not videos:
+        print(f"[{indice}] Nenhum resultado relevante.")
         return False
-    video = random.choice(dados["videos"])
+    videos = [v for v in videos if v.get("url") not in USADOS] or videos
+    video = random.choice(videos)
+    USADOS.add(video.get("url"))
+    print(f"[{indice}] usando: {video.get('url')}")
     arquivos = video["video_files"]
     hd = [f for f in arquivos if f.get("quality") == "hd"]
     link = (hd or arquivos)[0]["link"]
@@ -57,13 +67,19 @@ def main():
     for f in list(TRABALHO.glob("cena_*")) + [TRABALHO / "lista.txt", TRABALHO / "legenda.srt"]:
         f.unlink(missing_ok=True)
     roteiro = json.loads(arq.read_text(encoding="utf-8"))
-    creditos = []
+    creditos, especificas = [], 0
     for i, cena in enumerate(roteiro["cenas"], start=1):
         if not gerar_audio(cena["texto"], i):
             sys.exit(f"Erro: falhou a narracao da cena {i}.")
-        consultas = [cena.get("busca"), cena.get("busca_fallback"), "wildlife nature"]
-        if not any(q and baixar_video_pexels(q, api_key, i, creditos) for q in consultas):
+        achou = any(q and baixar_video_pexels(q, api_key, i, creditos, True)
+                    for q in (cena.get("busca"), cena.get("busca_fallback")))
+        if achou:
+            especificas += 1
+        elif not baixar_video_pexels(FILLER, api_key, i, creditos, False):
             sys.exit(f"Erro: sem video para a cena {i}.")
+    if especificas < 3:
+        print(f"Apenas {especificas}/5 cenas com imagens da especie. Tema pulado.")
+        sys.exit(3)
     (TRABALHO / "creditos.txt").write_text("; ".join(sorted(set(creditos))), encoding="utf-8")
     print("Midias prontas.")
 
