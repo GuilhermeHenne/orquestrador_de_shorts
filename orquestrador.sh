@@ -4,6 +4,7 @@ cd "$(dirname "$0")"
 rm -f corte_bruto.mp4 video_final.mp4 legenda.srt
 URL="$1"
 PY=/home/userapp/appvideos/scripts/env/bin
+export PATH="$PY:$PATH"
 
 GAMEPLAY=$(ls gameplays/*.mp4 2>/dev/null | shuf -n1)
 if [ -z "$GAMEPLAY" ]; then echo "Erro Crítico: pasta gameplays/ vazia."; exit 1; fi
@@ -30,6 +31,12 @@ fi
 
 echo "[3/4] Gerando legendas com Whisper..."
 $PY/python legendar.py corte_bruto.mp4 legenda.srt 2>/dev/null
+RC=$?
+if [ "$RC" -eq 5 ]; then
+  echo "Ignorado: audio nao esta em portugues."
+  rm -f corte_bruto.mp4 legenda.srt
+  exit 5
+fi
 if [ -s legenda.srt ]; then
   FINAL="[vs]subtitles=legenda.srt:original_size=1080x1920:force_style='Alignment=10,FontSize=10,Bold=1,Outline=1,Shadow=0,MarginV=0'[vout]"
 else

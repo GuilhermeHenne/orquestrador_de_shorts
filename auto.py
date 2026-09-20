@@ -1,3 +1,5 @@
+import os as _os
+_os.environ["PATH"] = "/home/userapp/appvideos/scripts/env/bin:" + _os.environ.get("PATH", "")
 # Maestro: escolhe a URL, processa e publica o Short
 import subprocess, sys
 from datetime import datetime
@@ -95,8 +97,20 @@ def main():
             registrar(url)
             continue
 
+        idioma = (i.get("language") or "").lower()
+        orig = [k.lower() for k in (i.get("automatic_captions") or {}) if k.endswith("-orig")]
+        fala = idioma or (orig[0] if orig else "")
+        if fala and not fala.startswith("pt"):
+            log(f"Ignorado (idioma {fala}):", url)
+            registrar(url)
+            continue
+
         log("Processando:", i.get("title"))
         r = subprocess.run(["bash", str(BASE / "orquestrador.sh"), url], cwd=BASE)
+        if r.returncode == 5:
+            log("Ignorado (áudio não está em português):", url)
+            registrar(url)
+            continue
         if r.returncode != 0 or not video.exists():
             falha(url, "processamento")
             continue

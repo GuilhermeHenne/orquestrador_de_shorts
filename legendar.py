@@ -1,10 +1,14 @@
-# Gera legendas com Whisper (faster-whisper)
+# Gera legendas com Whisper (faster-whisper); sai com codigo 5 se o audio nao for portugues
 import sys
 from faster_whisper import WhisperModel
 
 entrada, saida = sys.argv[1], sys.argv[2]
 model = WhisperModel("small", device="cpu", compute_type="int8")
-segs, _ = model.transcribe(entrada, language="pt", word_timestamps=True, vad_filter=True)
+segs, info = model.transcribe(entrada, language=None, word_timestamps=True, vad_filter=True)
+
+if info.language != "pt" or info.language_probability < 0.6:
+    print(f"IDIOMA: {info.language} ({info.language_probability:.2f})")
+    sys.exit(5)
 
 def ts(t):
     h, m, s = int(t // 3600), int(t % 3600 // 60), int(t % 60)
