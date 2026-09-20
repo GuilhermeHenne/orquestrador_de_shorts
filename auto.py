@@ -6,7 +6,7 @@ import yt_dlp
 
 BASE = Path(__file__).parent
 PY = BASE / "env/bin/python"
-HASHTAGS = "#shorts #curiosidades #polemica #podcast #interessnte #opiniao #feed"
+HASHTAGS = "#shorts #curiosidades #Animais #Plantas #interessnte #Biologia #feed #Animaisinteressantes"
 MAX_FALHAS = 2      # tentativas por URL antes de descartar
 DURACAO_MIN = 90    # ignora vídeos mais curtos que isso (segundos)
 
