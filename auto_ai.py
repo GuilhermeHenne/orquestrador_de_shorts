@@ -69,6 +69,17 @@ def main():
     if r.returncode != 0:
         log("Falha na montagem. Abortando.")
         sys.exit(1)
+
+    subprocess.run(["bash", "musica.sh", "video_final.mp4"], cwd=BASE)
+    cm = ""
+    mu = BASE / "dados" / "musica_usada.txt"
+    cr = BASE / "musicas" / "creditos.txt"
+    if mu.exists() and cr.exists():
+        usada = mu.read_text().strip()
+        for linha in cr.read_text(encoding="utf-8").splitlines():
+            arq, _, txt = linha.partition("|")
+            if arq.rsplit(".", 1)[0] == usada:
+                cm = txt
     
     # 4. Upload para o YouTube
     roteiro_json = json.loads((TRABALHO / "roteiro.json").read_text(encoding="utf-8"))
@@ -79,7 +90,8 @@ def main():
         f"Descubra as curiosidades sobre: {tema_atual}!\n\n"
         f"Fonte da pesquisa: {roteiro_json['fonte']}\n"
         f"Vídeos: Pexels - {creditos}\n"
-        "Narração: IA Sintética (Edge TTS)\n\n"
+        "Narração: IA Sintética (Edge TTS)\n"
+        f"{cm}\n\n"
         f"{HASHTAGS}"
     )
     
