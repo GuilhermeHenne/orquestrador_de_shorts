@@ -1,12 +1,12 @@
 # Gera roteiro curto (JSON) a partir da Wikipedia pt e de um modelo local (Ollama)
-import json, random, re, sys, urllib.parse, urllib.request
-from validacao import fundamentado
+import json, random, re, sys, time, urllib.error, urllib.parse, urllib.request
+from validacao import fundamentado, corrigir_genero
 from pathlib import Path
 
 BASE = Path(__file__).parent
 MODELO = "qwen2.5:3b"
 OLLAMA = "http://localhost:11434/api/generate"
-UA = {"User-Agent": "orquestra-uso-pessoal/0.1", "Content-Type": "application/json"}
+UA = {"User-Agent": "orquestrador-de-shorts/0.1 (https://github.com/GuilhermeHenne/orquestrador_de_shorts)", "Content-Type": "application/json"}
 TITULOS = ["{t}: você sabia disso?", "Curiosidades sobre {t}", "{t}: fatos que impressionam"]
 PALAVRAS_EN = {"the", "and", "you", "your", "is", "are", "of", "that", "they", "with", "this", "what", "will", "believe", "next"}
 EXTRAS_BUSCA = ["", "water", "group", "close up", "nature"]
@@ -14,9 +14,16 @@ CTAS = ["Você já conhecia essa curiosidade? Conta nos comentários.", "Qual an
 
 
 def get_json(url, dados=None, timeout=600):
-    req = urllib.request.Request(url, data=dados, headers=UA)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.load(r)
+    for espera in (0, 5, 15, 45):
+        time.sleep(espera)
+        req = urllib.request.Request(url, data=dados, headers=UA)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code != 429:
+                raise
+    raise RuntimeError("Wikipedia limitou as requisicoes (429)")
 
 
 def wikipedia(tema):
@@ -104,8 +111,11 @@ def main():
             if "?" not in ultima["texto"]:
                 ultima["texto"] = ultima["texto"].rstrip() + " " + random.choice(CTAS)
             r["titulo"] = random.choice(TITULOS).format(t=titulo)
+            corrigir_genero(r["cenas"], texto, titulo)
             montar_buscas(nome_en, r["cenas"])
             r["tema"] = titulo
+            m = re.search(r"\(([A-ZÀ-Ý][a-zà-ÿ]+ [a-zà-ÿ]{3,})[,)]", texto)
+            r["cientifico"] = m.group(1) if m else ""
             r["fonte"] = f"https://pt.wikipedia.org/wiki/{urllib.parse.quote(titulo.replace(' ', '_'))}"
             (BASE / "trabalho").mkdir(exist_ok=True)
             (BASE / "trabalho" / "roteiro.json").write_text(json.dumps(r, ensure_ascii=False, indent=2))

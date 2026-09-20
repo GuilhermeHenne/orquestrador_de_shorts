@@ -1,6 +1,7 @@
 # Coleta de midias (Pexels) e geracao de voz (Edge TTS)
 import json, random, re, subprocess, sys, urllib.parse
 from pathlib import Path
+from commons import foto_como_clipe, duracao
 
 BASE = Path(__file__).parent
 TRABALHO = BASE / "trabalho"
@@ -73,6 +74,13 @@ def main():
             sys.exit(f"Erro: falhou a narracao da cena {i}.")
         achou = any(q and baixar_video_pexels(q, api_key, i, creditos, True)
                     for q in (cena.get("busca"), cena.get("busca_fallback")))
+        if not achou:
+            nome_en = cena.get("busca_fallback") or ""
+            termos = [t for t in (roteiro.get("cientifico"), nome_en, roteiro.get("tema")) if t and t != "wildlife"]
+            cred = foto_como_clipe(termos, TRABALHO / f"cena_{i}.mp4", duracao(TRABALHO / f"cena_{i}.mp3"))
+            if cred:
+                creditos.append(cred)
+                achou = True
         if achou:
             especificas += 1
         elif not baixar_video_pexels(FILLER, api_key, i, creditos, False):

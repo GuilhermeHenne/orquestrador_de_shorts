@@ -89,7 +89,7 @@ def main():
     descricao = (
         f"Descubra as curiosidades sobre: {tema_atual}!\n\n"
         f"Fonte da pesquisa: {roteiro_json['fonte']}\n"
-        f"Vídeos: Pexels - {creditos}\n"
+        f"Imagens e vídeos: {creditos}\n"
         "Narração: IA Sintética (Edge TTS)\n"
         f"{cm}\n\n"
         f"{HASHTAGS}"
