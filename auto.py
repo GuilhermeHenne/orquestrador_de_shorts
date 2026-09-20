@@ -41,7 +41,7 @@ def falha(url, motivo):
 
 
 def info(url):
-    opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    opts = {"quiet": True, "no_warnings": True, "skip_download": True, "cookiefile": str(BASE / "cookies.txt")}
     with yt_dlp.YoutubeDL(opts) as y:
         return y.extract_info(url, download=False)
 

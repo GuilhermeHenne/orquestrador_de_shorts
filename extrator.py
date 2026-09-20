@@ -3,7 +3,7 @@ import yt_dlp
 import sys
 
 def extrair_melhor_corte(url_video):
-    ydl_opts = {'quiet': True, 'dump_single_json': True, 'extract_flat': False}
+    ydl_opts = {'quiet': True, 'dump_single_json': True, 'extract_flat': False, 'cookiefile': '/home/userapp/appvideos/scripts/cookies.txt'}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url_video, download=False)
     
