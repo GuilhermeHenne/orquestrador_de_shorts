@@ -14,17 +14,17 @@ def log(*a):
     print(f"[{datetime.now():%d/%m %H:%M:%S}]", *a, flush=True)
 
 def ler_temas():
-    p = BASE / "temas.txt"
+    p = BASE / "dados/temas.txt"
     if not p.exists():
         return []
     return [l.strip() for l in p.read_text().splitlines() if l.strip()]
 
 def marcar_como_feito(tema):
-    with open(BASE / "temas_feitos.txt", "a") as f:
+    with open(BASE / "dados/temas_feitos.txt", "a") as f:
         f.write(tema + "\n")
 
 def temas_ja_feitos():
-    p = BASE / "temas_feitos.txt"
+    p = BASE / "dados/temas_feitos.txt"
     if not p.exists():
         return set()
     return set(l.strip() for l in p.read_text().splitlines() if l.strip())
@@ -69,10 +69,12 @@ def main():
     # 4. Upload para o YouTube
     roteiro_json = json.loads((TRABALHO / "roteiro.json").read_text(encoding="utf-8"))
     titulo = f"{roteiro_json['titulo']} #shorts"
+    cf = TRABALHO / "creditos.txt"
+    creditos = cf.read_text(encoding="utf-8") if cf.exists() else "Pexels"
     descricao = (
         f"Descubra as curiosidades sobre: {tema_atual}!\n\n"
         f"Fonte da pesquisa: {roteiro_json['fonte']}\n"
-        "Imagens: Pexels (Licença Gratuita)\n"
+        f"Vídeos: Pexels - {creditos}\n"
         "Narração: IA Sintética (Edge TTS)\n\n"
         f"{HASHTAGS}"
     )

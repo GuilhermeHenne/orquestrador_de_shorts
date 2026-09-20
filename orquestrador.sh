@@ -8,7 +8,7 @@ export PATH="$PY:$PATH"
 
 GAMEPLAY=$(ls gameplays/*.mp4 2>/dev/null | shuf -n1)
 if [ -z "$GAMEPLAY" ]; then echo "Erro Crítico: pasta gameplays/ vazia."; exit 1; fi
-basename "$GAMEPLAY" .mp4 > gameplay_usado.txt
+basename "$GAMEPLAY" .mp4 > dados/gameplay_usado.txt
 DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$GAMEPLAY" | cut -d. -f1)
 if [ "$DUR" -gt 70 ]; then OFFSET=$(( RANDOM % (DUR - 70) )); else OFFSET=0; fi
 if [ $((RANDOM % 2)) -eq 0 ]; then ORDEM="[vtop][vbot]"; else ORDEM="[vbot][vtop]"; fi

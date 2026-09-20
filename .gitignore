@@ -28,3 +28,7 @@ fontes.tmp
 cookies.txt
 .env
 trabalho/
+_backup/
+segredos/
+logs/
+temas_feitos.txt

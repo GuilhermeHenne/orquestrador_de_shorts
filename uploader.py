@@ -1,4 +1,6 @@
 # Envia o video ao YouTube pela API v3
+import os
+SEG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "segredos")
 import sys
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -8,11 +10,11 @@ from googleapiclient.http import MediaFileUpload
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 
 def get_service():
-    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    creds = Credentials.from_authorized_user_file(os.path.join(SEG, "token.json"), SCOPES)
     if not creds.valid:
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            open("token.json", "w").write(creds.to_json())
+            open(os.path.join(SEG, "token.json"), "w").write(creds.to_json())
         else:
             print("Token inválido. Rode auth.py de novo."); sys.exit(2)
     return build("youtube", "v3", credentials=creds)

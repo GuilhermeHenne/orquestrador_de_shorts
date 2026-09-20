@@ -30,12 +30,12 @@ def anexar(nome, linha):
 
 
 def registrar(url):
-    anexar("feito.txt", url)
+    anexar("dados/feito.txt", url)
 
 
 def falha(url, motivo):
-    anexar("falhas.txt", url)
-    n = lista("falhas.txt").count(url)
+    anexar("dados/falhas.txt", url)
+    n = lista("dados/falhas.txt").count(url)
     log(f"Falha {n}/{MAX_FALHAS} ({motivo}): {url}")
     if n >= MAX_FALHAS:
         log("Descartando URL após falhas repetidas.")
@@ -43,7 +43,7 @@ def falha(url, motivo):
 
 
 def info(url):
-    opts = {"quiet": True, "no_warnings": True, "skip_download": True, "cookiefile": str(BASE / "cookies.txt")}
+    opts = {"quiet": True, "no_warnings": True, "skip_download": True, "cookiefile": str(BASE / "segredos" / "cookies.txt")}
     with yt_dlp.YoutubeDL(opts) as y:
         return y.extract_info(url, download=False)
 
@@ -53,7 +53,7 @@ def limpar_titulo(t):
 
 
 def credito_gameplay():
-    gf = BASE / "gameplay_usado.txt"
+    gf = BASE / "dados/gameplay_usado.txt"
     if not gf.exists():
         return ""
     gid = gf.read_text().strip()
@@ -69,10 +69,10 @@ def credito_gameplay():
 def main():
     limite = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     postados = 0
-    feitos = set(lista("feito.txt"))
+    feitos = set(lista("dados/feito.txt"))
     video = BASE / "video_final.mp4"
 
-    for url in lista("fontes.txt"):
+    for url in lista("dados/fontes.txt"):
         if postados >= limite:
             break
         if url in feitos:
