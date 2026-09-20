@@ -26,3 +26,5 @@ falhas.txt
 *.bak
 fontes.tmp
 cookies.txt
+.env
+trabalho/
