@@ -73,3 +73,54 @@ def foto_como_clipe(termos, saida, dur):
             except Exception as e:
                 print("Commons: falhou com", titulo, e)
     return None
+
+
+def _candidatas_video(termo):
+    q = urllib.parse.quote(f"{termo} filetype:video")
+    url = ("https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6"
+           f"&gsrsearch={q}&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime"
+           "&format=json")
+    paginas = (_get(url).get("query") or {}).get("pages") or {}
+    chaves = [w for w in re.findall(r"[a-zà-ÿ]+", termo.lower()) if len(w) > 3]
+    saida = []
+    for p in paginas.values():
+        info = (p.get("imageinfo") or [{}])[0]
+        meta = info.get("extmetadata") or {}
+        lic = _limpo((meta.get("LicenseShortName") or {}).get("value"))
+        mime = info.get("mime", "")
+        if not LICENCA_OK.match(lic) or not mime.startswith("video/"):
+            continue
+        texto = (p.get("title", "") + " " + _limpo((meta.get("ImageDescription") or {}).get("value"))).lower()
+        if chaves and not all(w in texto for w in chaves):
+            continue
+        artista = _limpo((meta.get("Artist") or {}).get("value")) or "autor desconhecido"
+        pagina_url = "https://commons.wikimedia.org/wiki/" + urllib.parse.quote(p["title"].replace(" ", "_"))
+        saida.append((p["title"], info["url"], f"{artista[:60]} / Wikimedia Commons, {lic} ({pagina_url})"))
+    return saida
+
+
+def video_commons(termos, saida, indice, creditos):
+    for termo in termos:
+        try:
+            cands = [c for c in _candidatas_video(termo) if c[0] not in USADAS]
+        except Exception as e:
+            print("Commons (video): erro na busca:", e)
+            continue
+        for titulo, url, credito in cands[:5]:
+            bruto = Path(saida).with_suffix(".src")
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=90) as r:
+                    bruto.write_bytes(r.read())
+                subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(bruto), "-an",
+                                "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", str(saida)], check=True)
+                bruto.unlink(missing_ok=True)
+                if Path(saida).stat().st_size < 50_000:
+                    continue
+                USADAS.add(titulo)
+                creditos.append(credito)
+                print(f"[{indice}] Commons (vídeo): {titulo}")
+                return True
+            except Exception as e:
+                print("Commons (video): falhou com", titulo, e)
+                bruto.unlink(missing_ok=True)
+    return False

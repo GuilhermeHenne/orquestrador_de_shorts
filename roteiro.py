@@ -4,7 +4,7 @@ from validacao import fundamentado, corrigir_genero
 from pathlib import Path
 
 BASE = Path(__file__).parent
-MODELO = "qwen2.5:3b"
+MODELO = "qwen2.5:7b"
 OLLAMA = "http://localhost:11434/api/generate"
 UA = {"User-Agent": "orquestrador-de-shorts/0.1 (https://github.com/GuilhermeHenne/orquestrador_de_shorts)", "Content-Type": "application/json"}
 TITULOS = ["{t}: você sabia disso?", "Curiosidades sobre {t}", "{t}: fatos que impressionam"]

@@ -29,6 +29,9 @@ def temas_ja_feitos():
         return set()
     return set(l.strip() for l in p.read_text().splitlines() if l.strip())
 
+MODO_RANKING = len(sys.argv) > 1 and sys.argv[1] == "ranking"
+
+
 def main():
     temas = ler_temas()
     feitos = temas_ja_feitos()
@@ -47,7 +50,7 @@ def main():
     
     # 1. Gerar Roteiro
     log("A gerar roteiro...")
-    r = subprocess.run([str(PY), "roteiro.py", tema_atual], cwd=BASE)
+    r = subprocess.run([str(PY), "roteiro_ranking.py"] if MODO_RANKING else [str(PY), "roteiro.py", tema_atual], cwd=BASE)
     if r.returncode != 0:
         log("Falha ao gerar roteiro. Abortando.")
         sys.exit(1)
